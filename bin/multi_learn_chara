@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#  Imperial
+#  ======
+#  Copyright (C) 2015 FTG-Reversal
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+import sys
+
+sys.path.append('.')
+train_basedir = sys.argv[1]
+
+from imperial import CharaRecoginizer
+
+charas = [
+    ("アクセル","ax"),
+    ("ベッドマン","be"),
+    ("チップ","ch"),
+    ("エルフェルト","el"),
+    ("ファウスト", "fa"),
+    ("イノ", "in"),
+    ("ジャム", "ja"),
+    ("ジャックオー", "jc"),
+    ("ジョニー", "jo"),
+    ("カイ", "ky"),
+    ("レオ", "le"),
+    ("メイ", "ma"),
+    ("ミリア", "mi"),
+    ("ポチョムキン", "po"),
+    ("ラムレザル", "ra"),
+    ("シン", "si"),
+    ("スレイヤー", "sl"),
+    ("ソル", "so"),
+    ("ヴェノム", "ve"),
+    ("ザトー", "za")
+]
+
+
+def learnImageGroup(recoginizer, player, name="unknown", dir=None):
+    if dir is None or recoginizer is None:
+        return None
+
+    train_dir = "%s/%s/%s" % (train_basedir, player, dir)
+    print("%s => %s" % (name, train_dir))
+    recoginizer.learn_image_group(name=name, dir=train_dir)
+
+for i, chara in enumerate(charas):
+    recoginizer = CharaRecoginizer()
+    learnImageGroup(recoginizer, '1p', chara[0], dir=chara[1])
+    recoginizer.knn_train_from_group()
+    recoginizer.save_model_to_file('1p', str(i))
+    recoginizer.knn_reset()
+
+for i, chara in enumerate(charas):
+    recoginizer = CharaRecoginizer()
+    learnImageGroup(recoginizer, '2p', chara[0], dir=chara[1])
+    recoginizer.knn_train_from_group()
+    recoginizer.save_model_to_file('2p', str(i))
+    recoginizer.knn_reset()
+

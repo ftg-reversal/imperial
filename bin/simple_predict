@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#  Imperial
+#  ======
+#  Copyright (C) 2015 FTG-Reversal
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+import sys
+import os
+import cv2
+import numpy as np
+
+sys.path.append('.')
+sample_dir = sys.argv[1]
+
+import imperial.constants
+from imperial import CharaRecoginizer
+
+def read_sample(sample_dir, player):
+    charas = CharaRecoginizer()
+    charas.load_model_from_file(player)
+    charas.knn_train()
+
+    files = os.listdir(sample_dir + '/' + player)
+    charas_list = [[0 for col in range(len(files))] for row in range(len(imperial.constants.charas))]
+    for file_index, file in enumerate(os.listdir(sample_dir + '/' + player)):
+        path = sample_dir + '/' + player + '/' + file
+        img = cv2.imread(path)
+        assert img is not None
+        result, distance = charas.predict(img)
+
+        chara_id = None
+        for i, k in enumerate(imperial.constants.charas):
+            if imperial.constants.charas[k]['ja'] == result:
+                chara_id = k
+                charas_list[i][file_index] = distance
+
+    return charas_list
+
+def normalize(charas_list):
+    convolved_list = []
+    for chara in charas_list:
+        last_and_next = [np.convolve(chara, [0, 0, 0, 0.25, 0.25, 0.25, 0.25]),
+            np.convolve(chara, [0.25, 0.25, 0.25, 0.25, 0, 0, 0])]
+        convolved_list.append(np.max(last_and_next, axis=0))
+
+    return convolved_list
+
+def chara_pairs():
+    pair = []
+    for i, _ in enumerate(imperial.constants.charas):
+        for j, _ in enumerate(imperial.constants.charas):
+            pair.append((i, j))
+
+    return pair
+
+def list_to_scores(list):
+    scores = []
+    for score in zip(*list):
+        scores.append((np.argmax(score), np.amax(score)))
+
+    return scores
+
+def zip_scores_list(list_1p, list_2p):
+    scores_1p = list_to_scores(list_1p)
+    scores_2p = list_to_scores(list_2p)
+    return zip(scores_1p, scores_2p)
+
+def pair_rate(target_pairs, pair):
+    i = 0
+    for target_pair in target_pairs:
+        if list(target_pair)[0] == pair:
+            i += 1
+
+    return i / len(target_pairs)
+
+def reduce_pair_func(reducer, tuple):
+    if reducer[-1][1] == tuple[1]:
+        return
+
+    reducer.append(tuple)
+
+
+charas_list_1p = read_sample(sample_dir, '1p')
+charas_list_2p = read_sample(sample_dir, '2p')
+
+convolved_list_1p = normalize(charas_list_1p)
+convolved_list_2p = normalize(charas_list_2p)
+
+pair_score_list = [score for score in zip_scores_list(convolved_list_1p, convolved_list_2p)]
+
+extract_pairs = []
+for score in pair_score_list:
+    extract_pairs.append(list(zip(*score)))
+
+results = []
+for pair in chara_pairs():
+    for index in range(len(extract_pairs)):
+        min = index - 30
+        if min < 0:
+            min = 0
+        rate = pair_rate(extract_pairs[min:index + 30], pair)
+
+        if rate >= 0.7:
+            results.append((index, pair, rate))
+
+reducer = [sorted(results)[0]]
+for result in sorted(results):
+    reduce_pair_func(reducer, result)
+
+for item in reducer:
+    chara1p = list(imperial.constants.charas.items())[item[1][0]][0]
+    chara2p = list(imperial.constants.charas.items())[item[1][1]][0]
+    print('sec: ' + str(item[0]) + ', ' + chara1p + ' vs ' + chara2p)
