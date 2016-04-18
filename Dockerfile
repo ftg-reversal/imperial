@@ -23,3 +23,5 @@ RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
 
 ADD . /usr/local/app
 WORKDIR /usr/local/app
+
+CMD /usr/local/app/bin/server
