@@ -32,9 +32,6 @@ sys.path.append('.')
 import imperial.constants
 from imperial import CharaRecoginizer
 
-SCORE_THRESHOLD = 80
-FRAME_THRESHOLD = 80
-
 CHARAS = [
     ("Axl","ax"),
     ("Bedman","be"),
@@ -128,9 +125,9 @@ def id2name(id):
 
 #  アプリ初期化
 server = Flask(__name__)
-@server.route('/<video_id>', methods=['GET'])
+@server.route('/<score_threshold>/<frame_threshold>/<video_id>', methods=['GET'])
 
-def predict(video_id):
+def predict(score_threshold, frame_threshold, video_id):
     if not re.match('^sm\d+$', video_id):
         return abort(500)
 
@@ -154,7 +151,7 @@ def predict(video_id):
     # スコアが一定以下のものを真として各フレーム毎の対戦組み合わせのリストを生成する
     pairs = []
     for sec, score in enumerate(zip_scores):
-        if score[1][0] + score[1][1] < SCORE_THRESHOLD:
+        if score[1][0] + score[1][1] < int(score_threshold):
             pairs.append((sec, score))
 
     # 連続したフレームに残っている組み合わせを畳み込む
@@ -167,13 +164,13 @@ def predict(video_id):
     while True:
         if len(reducer) - 1 < index:
             break
-        if reducer[index][0] - reducer[index - 1][0] < FRAME_THRESHOLD:
+        if reducer[index][0] - reducer[index - 1][0] < int(frame_threshold):
             del reducer[index - 1]
         else:
             index += 1
 
     # reducerの最後の要素が特定フレーム以下の長さなら削除
-    if len(os.listdir(fetch_dir + '/1p')) - reducer[-1][0] > FRAME_THRESHOLD:
+    if len(os.listdir('./fetched_data/' + video_id+ '/1p')) - reducer[-1][0] > int(frame_threshold):
         reducer.pop()
 
     pairs = []
