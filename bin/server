@@ -33,10 +33,10 @@ import imperial.constants
 from imperial import CharaRecoginizer
 
 CHARAS = [
-    ("Axl","ax"),
-    ("Bedman","be"),
-    ("Chipp","ch"),
-    ("Elphelt","el"),
+    ("Axl", "ax"),
+    ("Bedman", "be"),
+    ("Chipp", "ch"),
+    ("Elphelt", "el"),
     ("Faust", "fa"),
     ("I-no", "in"),
     ("Jam", "ja"),
@@ -62,26 +62,28 @@ def fetch_data(video_id, fetch_dir):
         os.mkdir(fetch_dir + "/2p")
         os.system("nicovideo-dump http://www.nicovideo.jp/watch/" + video_id + " | ffmpeg -i pipe:0 -filter_complex '[0:v]fps=1, scale=640:-1, split[tmp1][tmp2]; [tmp1]crop=40:40:20:0[out1]; [tmp2]crop=40:40:580:0[out2]' -map '[out1]' " + fetch_dir + "/1p/%04d.jpg -map '[out2]' " + fetch_dir + "/2p/%04d.jpg")
 
+
 def read_fetched_data(fetch_dir, player):
     files = sorted(os.listdir(fetch_dir + '/' + player))
     distances = np.empty((len(imperial.constants.charas), len(files)))
 
     for chara_index, chara in enumerate(imperial.constants.charas):
-        recoginizer = CharaRecoginizer()
-        recoginizer.load_model_from_file(player, str(chara_index))
-        recoginizer.knn_train()
+        recognizer = CharaRecoginizer()
+        recognizer.load_model_from_file(player, str(chara_index))
+        recognizer.knn_train()
 
         arr = np.array([])
         for file_index, file in enumerate(files):
             img = cv2.imread(fetch_dir + '/' + player + '/' + file)
             assert img is not None
 
-            result, distance = recoginizer.predict(img)
+            result, distance = recognizer.predict(img)
             arr = np.append(arr, distance)
 
         distances[chara_index] = arr
 
     return distances
+
 
 def convolve(distances, size):
     convolved_list = np.array(distances)
@@ -111,6 +113,7 @@ def distances_to_scores(distances):
 
     return scores
 
+
 def reduce_pair_func(reducer, pair):
     # numpyのbool配列が返ってくる
     boolean = reducer[-1][1][0] == pair[1][0]
@@ -120,8 +123,10 @@ def reduce_pair_func(reducer, pair):
 
     reducer.append(pair)
 
+
 def id2name(id):
     return CHARAS[id][0]
+
 
 #  アプリ初期化
 server = Flask(__name__)
