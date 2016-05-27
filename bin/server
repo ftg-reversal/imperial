@@ -60,7 +60,7 @@ def fetch_data(video_id, fetch_dir):
         os.mkdir(fetch_dir)
         os.mkdir(fetch_dir + "/1p")
         os.mkdir(fetch_dir + "/2p")
-        os.system("nicovideo-dump http://www.nicovideo.jp/watch/" + video_id + " | ffmpeg -i pipe:0 -filter_complex '[0:v]fps=1, scale=640:-1, split[tmp1][tmp2]; [tmp1]crop=48:48:20:0[out1]; [tmp2]crop=48:48:572:0[out2]' -map '[out1]' " + fetch_dir + "/1p/%04d.jpg -map '[out2]' " + fetch_dir + "/2p/%04d.jpg")
+        os.system("nicovideo-dump http://www.nicovideo.jp/watch/" + video_id + " | ffmpeg -i pipe:0 -filter_complex '[0:v]fps=1, scale=640:-1, split[tmp1][tmp2]; [tmp1]crop=40:40:20:0[out1]; [tmp2]crop=40:40:580:0[out2]' -map '[out1]' " + fetch_dir + "/1p/%04d.jpg -map '[out2]' " + fetch_dir + "/2p/%04d.jpg")
 
 
 def read_fetched_data(fetch_dir, player):
