@@ -18,3 +18,6 @@
 #  limitations under the License.
 #
 from .chara_recoginizer import CharaRecoginizer
+from .chara_detector import *
+from .onlinedetector import *
+from .featureextractor import *

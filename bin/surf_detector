@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+import cv2
+import sys
+import os
+
+sys.path.append('.')
+
+from imperial import CharaDetector
+
+charas = [
+    ("アクセル","ax"),
+    ("ベッドマン","be"),
+    ("チップ","ch"),
+    ("エルフェルト","el"),
+    ("ファウスト", "fa"),
+    ("イノ", "in"),
+    ("ジャム", "ja"),
+    ("ジャックオー", "jc"),
+    ("ジョニー", "jo"),
+    ("カイ", "ky"),
+    ("レオ", "le"),
+    ("メイ", "ma"),
+    ("ミリア", "mi"),
+    ("ポチョムキン", "po"),
+    ("ラムレザル", "ra"),
+    ("シン", "si"),
+    ("スレイヤー", "sl"),
+    ("ソル", "so"),
+    ("ヴェノム", "ve"),
+    ("ザトー", "za")
+]
+
+if __name__=='__main__':
+    # init
+    chara_detector = CharaDetector(word_num=500, surf_thresh=100)
+    classnames = []
+    chara_classnames = []
+
+    for charaname, classname in charas:
+        dir = "%s/%s/%s" % ('train', '1p', classname)
+        print(charaname)
+        for root, dirs, files in os.walk(dir):
+            for file in sorted(files):
+                if file.endswith(".png") or file.endswith(".jpg"):
+                    f = os.path.join(root, file)
+                    print(f)
+                    img = cv2.imread(f)
+                    height = img.shape[0]
+                    width = img.shape[1]
+                    img = cv2.resize(img,(width * 5, height * 5))
+                    chara_detector.update(img, classname)
+    chara_detector.train()
+
+    for root, dirs, files in os.walk('/tmp/hoge/1p/'):
+        for file in sorted(files):
+            if file.endswith(".png") or file.endswith(".jpg"):
+                f = os.path.join(root, file)
+                print(f)
+                img = cv2.imread(f)
+                height = img.shape[0]
+                width = img.shape[1]
+                img = cv2.resize(img,(width * 5, height * 5))
+                probas = chara_detector.classify_proba(img)
+                print(probas)

@@ -17,11 +17,11 @@ RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
     bash /$MINICONDA -b -p /opt/conda && \
     conda install -y conda && \
     conda update -y conda && \
-    conda install -y flask && \
+    conda install -y scipy scikit-learn flask && \
     conda install -y -c https://conda.binstar.org/menpo opencv3 && \
     rm -rf /$MINICONDA
 
 ADD . /usr/local/app
 WORKDIR /usr/local/app
 
-CMD /usr/local/app/bin/server
+CMD /usr/local/app/bin/surf_server

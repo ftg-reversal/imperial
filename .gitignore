@@ -1,6 +1,7 @@
 *.html
 *.pyc
-*.png
+fetched_data/**/*
+!fetch_data/.keep
 
 # OSX
 .DS_Store
