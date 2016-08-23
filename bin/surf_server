@@ -36,18 +36,21 @@ CHARAS = [
     ("Axl", "ax"),
     ("Bedman", "be"),
     ("Chipp", "ch"),
+    ("Dizzy", "di"),
     ("Elphelt", "el"),
     ("Faust", "fa"),
     ("Ino", "in"),
     ("Jam", "ja"),
     ("Jack-O", "jc"),
     ("Johnny", "jo"),
+    ("Kum", "ku"),
     ("Ky", "ky"),
     ("Leo", "le"),
     ("May", "ma"),
     ("Millia", "mi"),
     ("Potemkin", "po"),
     ("Ramlethal", "ra"),
+    ("Raven", "rv"),
     ("Sin", "si"),
     ("Slayer", "sl"),
     ("Sol", "so"),
@@ -167,7 +170,7 @@ def predict(score_threshold, frame_threshold, video_id):
 
     fetch_data(video_id, './fetched_data/' + video_id)
 
-    # 1Pと2Pのデータを20次元のデータとしてそれぞれ読み込む
+    # 1Pと2Pのデータを23次元のデータとしてそれぞれ読み込む
     probas_1p = read_fetched_data('./fetched_data/' + video_id, '1p', chara_detector_1p)
     probas_2p = read_fetched_data('./fetched_data/' + video_id, '2p', chara_detector_2p)
 
